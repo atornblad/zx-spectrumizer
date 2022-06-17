@@ -6,6 +6,8 @@ Select a file from your computer or phone, or paste an image from the clipboard.
 
 Save .TAP file or play the loading sound directly from the browser.
 
+Try it out here: https://atornblad.github.io/zx-spectrumizer/
+
 ## Release notes
 
  - **2022-06-17**: First release. Not very clean code, probably riddled with bugs, very ugly user interface. Just getting something out there.
