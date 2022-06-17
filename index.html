@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZX Spectrumizer</title>
+    <link rel="stylesheet" href="site.css">
+    <script src="spectrumizer.js"></script>
+</head>
+<body>
+    <h1>ZX Spectrumizer</h1>
+    <p>Select or paste an image to convert it into a ZX Spectrum bitmap.</p>
+    <div class="form-group">
+        <input type="file" id="file" name="file" accept="image/*" capture="environment">
+        <label for="dither">Dither:</label>
+        <input type="checkbox" id="dither" name="dither" checked>
+    </div>
+    <canvas width="320" height="256"></canvas>
+    <div class="action-group">
+        <input type="button" id="save-tap" value="Save to .TAP">
+        <input type="button" id="play-sound" value="Play loading sound">
+    </div>
+</body>
+</html>
