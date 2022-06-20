@@ -43,7 +43,8 @@ class SaveToTapeProcessor extends AudioWorkletProcessor {
         this.blockPos = 0;
         this.blockPhase = null;
         this.done = false;
-        this.level = 0.05;
+        this.level = 0.1;
+        this.prevLevel = 0.0;
         this.borderColor = 7;
         for (let i = 0; i < 256; ++i) border[i] = this.borderColor;
 
@@ -115,7 +116,7 @@ class SaveToTapeProcessor extends AudioWorkletProcessor {
     nextLevel() {
         if (this.done) {
             doBorder(this.level, 7, 7);
-            return 0.0;
+            return this.level;
         }
 
         if (!this.tap) {
@@ -169,7 +170,9 @@ class SaveToTapeProcessor extends AudioWorkletProcessor {
         output.forEach(channel => {
             for (let i = 0; i < channel.length; ++i) {
                 const level = this.nextLevel();
-                channel[i] = level;
+                // Some softening
+                this.prevLevel = (this.prevLevel * 0.25 + level * 0.75);
+                channel[i] = this.prevLevel;
             }
         });
         if (postBorder) {

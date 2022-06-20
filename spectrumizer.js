@@ -25,48 +25,11 @@ const closestColor = (r, g, b, cols) => {
     return colors_used.reduce((a, b) => distance(a) <= distance(b) ? a : b);
 };
 
-const copyZXSpectrumString = (memory, offset, str, maxLength, padding) => {
-    for (let i = 0; i < maxLength; i++) {
-        memory[offset + i] = i < str.length ? str.charCodeAt(i) : (padding || 0);
-    }
-};
-
-const xorBytes = (memory, start, length) => {
-    let xor = 0;
-    for (let i = start; i < start + length; i++) {
-        xor ^= memory[i];
-    }
-    return xor;
-}
-
-const generateTap = (filename) => {
-    const file = new Uint8ClampedArray(2 + 19 + 2 + 2 + memory.length);
-    file[0] = 19;   // First block size (two positions)
-    file[1] = 0;
-    file[2] = 0;    // Header
-    file[3] = 3;    // Code
-    copyZXSpectrumString(file, 4, filename, 10, 32);
-    file[14] = MEMORY_SIZE & 255;
-    file[15] = MEMORY_SIZE >> 8;
-    file[16] = 0;
-    file[17] = (16384 >> 8);
-    file[18] = 0;
-    file[19] = 0x80;
-    file[20] = xorBytes(file, 2, 19);
-    file[21] = (MEMORY_SIZE + 2) & 255;
-    file[22] = (MEMORY_SIZE + 2) >> 8;
-    file[23] = 0xff;    // Data
-    for (let i = 0; i < MEMORY_SIZE; i++) {
-        file[24 + i] = memory[i];
-    }
-    file[24 + MEMORY_SIZE] = xorBytes(file, 23, MEMORY_SIZE + 1);
-    return file;
-};
-
 document.addEventListener('DOMContentLoaded', () => {
 
     const canvas = document.querySelector('canvas');
     const context = canvas.getContext('2d');
+    const fileLabel = document.getElementById('file-label');
     const fileInput = document.getElementById('file');
     const ditherInput = document.getElementById('dither');
     const saveTapButton = document.getElementById('save-tap');
@@ -98,14 +61,16 @@ document.addEventListener('DOMContentLoaded', () => {
     playSoundButton.addEventListener('click', async () => {
         if (audioPlaying) return;
         audioPlaying = true;
-        const tap = generateTap(filename);
+        const tap = generateTap(filename, memory);
         const audio = new AudioContext();
         await audio.audioWorklet.addModule('save-to-tape.js');
         const processor = new AudioWorkletNode(audio, 'save-to-tape');
         processor.port.onmessage = (e) => {
             if (e.data === 'done') {
-                audioPlaying = false;
-                audio.close();
+                window.setTimeout(() => {
+                    audioPlaying = false;
+                    audio.close();
+                }, 500);
             }
             else {
                 drawBorder(e.data);
@@ -116,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     saveTapButton.addEventListener('click', () => {
-        const file = generateTap(filename);
+        const file = generateTap(filename, memory);
         const blob = new Blob([file], {type: 'application/x-tap'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -126,11 +91,14 @@ document.addEventListener('DOMContentLoaded', () => {
         URL.revokeObjectURL(url);
     });
 
-    const imageOnload = (image, dither) => {
+    const imageOnload = (image, dither, filename) => {
         context.fillStyle = css(color(7));
         context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         context.fillStyle = '#000';
         context.fillRect(LEFT, TOP, MAX_WIDTH, MAX_HEIGHT);
+
+        saveTapButton.value = `💾 Save to ${filename}.TAP`;
+        playSoundButton.value = `🔊 SAVE "${filename}" SCREEN$`;
 
         let left = LEFT, top = TOP, width = MAX_WIDTH, height = MAX_HEIGHT;
         if (image.width / image.height > MAX_WIDTH / MAX_HEIGHT) {
@@ -228,18 +196,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    fileInput.addEventListener('change', () => {
+    const handleFileInput = () => {
         const file = fileInput.files[0];
-        filename = file.name.substr(0, 10);
+        filename = getZXSpectrumSafeString(file.name, 10, 'image');
         if (filename.indexOf('.') > 0) {
-            filename = filename.substr(0, filename.indexOf('.'));
+            filename = filename.substring(0, filename.indexOf('.'));
         }
         const image = new Image;
-        image.onload = () => imageOnload(image, ditherInput.checked);
+        image.onload = () => imageOnload(image, ditherInput.checked, filename);
         image.src = URL.createObjectURL(fileInput.files[0]);
+    };
+
+    if ('capture' in fileInput) {
+        fileLabel.textContent = '📷 Take a picture';
+    }
+
+    fileInput.addEventListener('change', handleFileInput);
+
+    ditherInput.addEventListener('change', () => {
+        if (fileInput.files.length >= 1) {
+            handleFileInput();
+        }
     });
 
     document.addEventListener('paste', (e) => {
+        fileInput.value = null;
         const items = e.clipboardData.items;
         filename = 'clipboard';
         for (let item of items) {
@@ -249,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const image = new Image();
-                    image.onload = () => imageOnload(image, ditherInput.checked);
+                    image.onload = () => imageOnload(image, ditherInput.checked, 'clipboard');
                     image.src = e.target.result;
                 }
                 reader.readAsDataURL(blob);

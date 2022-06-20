@@ -6,20 +6,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZX Spectrumizer</title>
     <link rel="stylesheet" href="site.css">
+    <script src="tap-files.js"></script>
     <script src="spectrumizer.js"></script>
 </head>
 <body>
-    <h1>ZX Spectrumizer</h1>
-    <p>Select or paste an image to convert it into a ZX Spectrum bitmap.</p>
-    <div class="form-group">
-        <input type="file" id="file" name="file" accept="image/*" capture="environment">
-        <label for="dither">Dither:</label>
-        <input type="checkbox" id="dither" name="dither" checked>
-    </div>
-    <canvas width="320" height="256"></canvas>
-    <div class="action-group">
-        <input type="button" id="save-tap" value="Save to .TAP">
-        <input type="button" id="play-sound" value="Play loading sound">
-    </div>
+    <header>
+        <svg id="atornbladse-in-style-of-sinclair" viewBox="0 0 520 40">
+            <g fill="#111" fill-rule="evenodd">
+                <path d="M1 11 L49 11 L49 39 L1 39 L1 21 L40 21 L40 19 L1 19 L1 11 M10 31 L40 31 L40 29 L10 29 L10 29 Z"/>
+                <path d="M61 1 L69 1 L 69 11 L99 11 L99 19 L69 19 L69 31 L99 31 L99 39 L61 39 L61 19 L51 19 L51 11 L 61 11 Z" />
+                <path d="M101 11 L149 11 L149 39 L101 39 L101 11 M110 20 L140 20 L140 30 L110 30 L110 20 Z" />
+                <path d="M151 11 L199 11 L199 19 L159 19 L159 39 L151 39 Z" />
+                <path d="M201 11 L249 11 L249 39 L241 39 L241 19 L209 19 L209 39 L201 39 Z" />
+                <path d="M251 1 L259 1 L259 11 L299 11 L299 39 L251 39 L251 1 M259 19 L291 19 L291 31 L259 31 L259 19 Z" />
+                <path d="M301 1 L309 1 L309 39 L301 39 Z" />
+                <path d="M311 11 L359 11 L359 39 L311 39 L311 21 L350 21 L350 19 L311 19 L311 11 M320 31 L350 31 L350 29 L320 29 L320 29 Z" />
+                <path d="M361 11 L401 11 L401 1 L409 1 L409 39 L361 39 L361 11 M370 20 L400 20 L400 30 L370 30 L370 20 Z" />
+                <path d="M411 31 L419 31 L419 39 L411 39" />
+                <path d="M421 11 L469 11 L469 19 L430 19 L430 21 L469 21 L469 39 L421 39 L421 31 L460 31 L460 29 L421 29 Z" />
+                <path d="M471 11 L519 11 L519 29 L480 29 L480 31 L519 31 L519 39 L471 39 L471 11 M480 19 L510 19 L510 21 L480 21 L480 19 Z" />
+            </g>
+        </svg>
+        <h1>ZX Spectrumizer</h1>
+    </header>
+    
+    <main>
+        <p>Select or paste an image to convert it into a ZX Spectrum bitmap.</p>
+        <div class="form-group">
+            <label id="file-label" for="file" class="button-like">📂 Pick an image</label>
+            <input type="file" id="file" name="file" accept="image/*" capture="environment">
+            <label for="dither">Dither:</label>
+            <input type="checkbox" id="dither" name="dither" checked>
+        </div>
+        <canvas width="320" height="256"></canvas>
+        <div class="action-group">
+            <input type="button" id="save-tap" value="💾 Save to .TAP">
+            <input type="button" id="play-sound" value="🔊 Play loading sound">
+        </div>
+    </main>
+
+    <footer>
+        <svg viewBox="0 0 50 200">
+            <path id="cyan" fill="#4eb8e5" d="M30 200 L50 120 L50 160 L40 200 Z" />
+            <path id="green" fill="#3fa75c" d="M20 200 L50 80 L50 120 L30 200 Z" />
+            <path id="yellow" fill="#ef9b21" d="M10 200 L50 40 L50 80 L20 200 Z" />
+            <path id="red" fill="#e01a2b" d="M0 200 L50 0 L50 40 L10 200 Z" />
+        </svg>
+        <p>&copy; 2022 <a href="https://atornblad.se">Anders Marzi Tornblad</a><br>
+            <!--Read about this project on <a href="https://atornblad.se/zx-spectrumizer">atornblad.se</a><br>-->
+            Check out the source code on <a href="https://github.com/atornblad/zx-spectrumizer">GitHub</a><br>
+            <a href="https://www.cufonfonts.com/font/zx-spectrum-7">ZX Spectrum 7</a> font made by Sizenko Alexander</p>
+    </footer>
 </body>
 </html>

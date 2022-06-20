@@ -1,6 +1,121 @@
+@font-face {
+    font-family: 'ZX Spectrum';
+    font-style: normal;
+    font-weight: normal;
+    ascent-override: 25%;
+    descent-override: 25%;
+    src: local('ZX Spectrum'), url('zx_spectrum-7.woff') format('woff');
+}
+
+html, body {
+    background: #222;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: #333 url('header.png') repeat center top;
+    box-shadow: 0 -10px 10px -10px #000 inset;
+    font-family: Helvetica, Arial, sans-serif;
+    padding: 0.5rem;
+    flex-shrink: 0;
+}
+
+header svg {
+    display: block;
+    width: min(30rem, calc(100vw - 1rem));
+}
+
+h1 {
+    margin: 0.5rem 0 2rem 0;
+    padding: 0;
+    font-weight: normal;
+    font-size: min(1rem, 3.5vw);
+}
+
+main {
+    font-family: 'ZX Spectrum';
+    font-size: 2rem;
+    margin: 0 auto;
+    max-width: 40rem;
+    flex-grow: 1;
+}
+
+.button-like, input[type=button] {
+    background-color: #567;
+    color: #fff;
+    border-radius: 0.2rem;
+    display: inline-block;
+    border: 0 none;
+    margin: 0;
+    padding: 0.55rem;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.8rem;
+    line-height: 1.15;
+}
+
+input[type=file] {
+    position: absolute;
+    left: -1px;
+    top: -1px;
+    width: 1px;
+    height: 1px;
+}
+
 canvas {
     border: 1px solid #000;
     display: block;
 
-    margin: 1em 0;
+    margin: 1rem 0;
+    width: 512px;
+    height: 384px;
+
+    background-color: rgb(208, 208, 208);
+}
+
+@media screen and (max-width: 600px) {
+    canvas {
+        width: 256px;
+        height: 192px;
+    }
+}
+
+footer {
+    display: block;
+    position: relative;
+    flex-shrink: 0;
+}
+
+footer > svg {
+    position: fixed;
+    display: block;
+    right: 0;
+    bottom: 0;
+    height: 10em;
+    width: 2.5em;
+}
+
+footer > p {
+    left: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 2rem 0.5rem 0.5rem 0.5rem;
+    font-family: 'ZX Spectrum';
+    font-size: 1.5rem;
+}
+
+a[href] {
+    color: #0ff;
+    text-decoration: underline;
+}
+
+a[href]:hover {
+    color: #f0f;
 }
