@@ -1,6 +1,8 @@
 
 const MEMORY_SIZE = 192 * 32 + 24 * 32;
 const memory = new Uint8ClampedArray(MEMORY_SIZE);
+let latestSource = null;
+let clipboardBlob = null;
 
 const range = function* (start, count) {
     for (let i = start; i < start + count; i++) {
@@ -207,34 +209,46 @@ document.addEventListener('DOMContentLoaded', () => {
         image.src = URL.createObjectURL(fileInput.files[0]);
     };
 
+    const handleClipboardInput = () => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const image = new Image();
+            image.onload = () => imageOnload(image, ditherInput.checked, 'clipboard');
+            image.src = e.target.result;
+        }
+        reader.readAsDataURL(clipboardBlob);
+    };
+
     if ('capture' in fileInput) {
         fileLabel.textContent = '📷 Take a picture';
     }
 
-    fileInput.addEventListener('change', handleFileInput);
+    fileInput.addEventListener('change', () => {
+        latestSource = 'file';
+        handleFileInput();
+    });
 
     ditherInput.addEventListener('change', () => {
-        if (fileInput.files.length >= 1) {
+        if (latestSource === 'file' && fileInput.files.length >= 1) {
             handleFileInput();
+        }
+        else if (latestSource === 'clipboard' && clipboardBlob) {
+            handleClipboardInput();
         }
     });
 
     document.addEventListener('paste', (e) => {
-        fileInput.value = null;
         const items = e.clipboardData.items;
-        filename = 'clipboard';
         for (let item of items) {
             // Get image as data url
             if (item.type.indexOf('image') !== -1) {
-                const blob = item.getAsFile();
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const image = new Image();
-                    image.onload = () => imageOnload(image, ditherInput.checked, 'clipboard');
-                    image.src = e.target.result;
-                }
-                reader.readAsDataURL(blob);
+                clipboardBlob = item.getAsFile();
+                latestSource = 'clipboard';
+                fileInput.value = null;
+                filename = 'clipboard';
+                handleClipboardInput();
+                break;
             }
-        }
+        };
     });
 });
