@@ -21,14 +21,27 @@ const css = ({r,g,b}) => `rgb(${r},${g},${b})`;
 
 const colors = arrange(0, 16).map(color);
 
-const closestColor = (r, g, b, cols) => {
+const rgbToHue = (r, g, b) => {
+    r /= 255, g /= 255, b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const d = max - min;
+    const h = (max === min) ? 0 : (max === r) ? ((g - b) / d + (g < b ? 6 : 0)) * 60 : (max === g) ? ((b - r) / d + 2) * 60 : ((r - g) / d + 4) * 60;
+    return h;
+}
+
+const colorDistance = (r, g, b, c) => Math.sqrt(Math.pow(c.r - r, 2) + Math.pow(c.g - g, 2) + Math.pow(c.b - b, 2));
+const colorDistanceHue = (r, g, b, c) => {
+    console.log({r, g, b, h : rgbToHue(r, g, b)});
+    return colorDistance(r, g, b, c);
+};
+
+const closestColor = (r, g, b, cols, promoteHue) => {
     const colors_used = cols ?? colors;
-    const distance = (c) => Math.sqrt(Math.pow(c.r - r, 2) + Math.pow(c.g - g, 2) + Math.pow(c.b - b, 2));
+    const distance = promoteHue ? (c) => colorDistanceHue(r, g, b, c) : (c) => colorDistance(r, g, b, c);
     return colors_used.reduce((a, b) => distance(a) <= distance(b) ? a : b);
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-
     const canvas = document.querySelector('canvas');
     const context = canvas.getContext('2d');
     const fileLabel = document.getElementById('file-label');
