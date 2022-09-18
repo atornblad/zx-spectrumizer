@@ -30,14 +30,17 @@ const rgbToHue = (r, g, b) => {
 }
 
 const colorDistance = (r, g, b, c) => Math.sqrt(Math.pow(c.r - r, 2) + Math.pow(c.g - g, 2) + Math.pow(c.b - b, 2));
-const colorDistanceHue = (r, g, b, c) => {
-    console.log({r, g, b, h : rgbToHue(r, g, b)});
-    return colorDistance(r, g, b, c);
+const colorDistanceWithHue = (r, g, b, c) => {
+    const inputHue = rgbToHue(r, g, b);
+    const compareHue = rgbToHue(c.r, c.g, c.b);
+    const absDist = Math.abs(inputHue - compareHue);
+    const dist = (absDist > 180) ? 360 - absDist : absDist;
+    return colorDistance(r, g, b, c) + dist;
 };
 
-const closestColor = (r, g, b, cols, promoteHue) => {
+const closestColor = (r, g, b, cols) => {
     const colors_used = cols ?? colors;
-    const distance = promoteHue ? (c) => colorDistanceHue(r, g, b, c) : (c) => colorDistance(r, g, b, c);
+    const distance = (c) => colorDistanceWithHue(r, g, b, c);
     return colors_used.reduce((a, b) => distance(a) <= distance(b) ? a : b);
 };
 
