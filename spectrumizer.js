@@ -21,19 +21,36 @@ const css = ({r,g,b}) => `rgb(${r},${g},${b})`;
 
 const colors = arrange(0, 16).map(color);
 
+const rgbToHue = (r, g, b) => {
+    r /= 255, g /= 255, b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const d = max - min;
+    const h = (max === min) ? 0 : (max === r) ? ((g - b) / d + (g < b ? 6 : 0)) * 60 : (max === g) ? ((b - r) / d + 2) * 60 : ((r - g) / d + 4) * 60;
+    return h;
+}
+
+const colorDistance = (r, g, b, c) => Math.sqrt(Math.pow(c.r - r, 2) + Math.pow(c.g - g, 2) + Math.pow(c.b - b, 2));
+const colorDistanceWithHue = (r, g, b, c) => {
+    const inputHue = rgbToHue(r, g, b);
+    const compareHue = rgbToHue(c.r, c.g, c.b);
+    const absDist = Math.abs(inputHue - compareHue);
+    const dist = (absDist > 180) ? 360 - absDist : absDist;
+    return colorDistance(r, g, b, c) + dist;
+};
+
 const closestColor = (r, g, b, cols) => {
     const colors_used = cols ?? colors;
-    const distance = (c) => Math.sqrt(Math.pow(c.r - r, 2) + Math.pow(c.g - g, 2) + Math.pow(c.b - b, 2));
+    const distance = (c) => colorDistanceWithHue(r, g, b, c);
     return colors_used.reduce((a, b) => distance(a) <= distance(b) ? a : b);
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-
     const canvas = document.querySelector('canvas');
     const context = canvas.getContext('2d');
     const fileLabel = document.getElementById('file-label');
     const fileInput = document.getElementById('file');
     const ditherInput = document.getElementById('dither');
+    const saturizeInput = document.getElementById('saturize');
     const saveTapButton = document.getElementById('save-tap');
     const playSoundButton = document.getElementById('play-sound');
 
@@ -93,7 +110,22 @@ document.addEventListener('DOMContentLoaded', () => {
         URL.revokeObjectURL(url);
     });
 
-    const imageOnload = (image, dither, filename) => {
+    const getPixel = (data, index, saturize) => {
+        let r = data[index];
+        let g = data[index + 1];
+        let b = data[index + 2];
+        if (saturize) {
+            r = 127.5 + (r - 127.5) * 3.0;
+            g = 127.5 + (g - 127.5) * 3.0;
+            b = 127.5 + (b - 127.5) * 3.0;
+            r = Math.min(255, Math.max(0, r));
+            g = Math.min(255, Math.max(0, g));
+            b = Math.min(255, Math.max(0, b));
+        }
+        return { r : r | 0, g : g | 0, b : b | 0 };
+    };
+
+    const imageOnload = (image, dither, saturize, filename) => {
         context.fillStyle = css(color(7));
         context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         context.fillStyle = '#000';
@@ -127,7 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (let y = by; y < (by + 8); y++) {
                     for (let x = bx; x < (bx + 8); x++) {
                         const index = (y * CANVAS_WIDTH + x) * 4;
-                        const color = closestColor(imageData.data[index], imageData.data[index + 1], imageData.data[index + 2]);
+                        const {r, g, b} = getPixel(imageData.data, index, saturize);
+                        const color = closestColor(r, g, b);
                         colorsByIndex[color.i]++;
                     }
                 }
@@ -144,7 +177,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (let y = by; y < (by + 8); y++) {
                     for (let x = bx; x < (bx + 8); x++) {
                         const index = (y * CANVAS_WIDTH + x) * 4;
-                        const color = closestColor(imageData.data[index], imageData.data[index + 1], imageData.data[index + 2], localColors);
+                        const {r, g, b} = getPixel(imageData.data, index, saturize);
+                        const color = closestColor(r, g, b);
                         localColorsByIndex[color.i & 7].count++;
                     }
                 }
@@ -170,9 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     let bits = 0;
                     for (let x = bx; x < (bx + 8); x++) {
                         const index = (y * CANVAS_WIDTH + x) * 4;
-                        const r = imageData.data[index];
-                        const g = imageData.data[index + 1];
-                        const b = imageData.data[index + 2];
+                        const {r, g, b} = getPixel(imageData.data, index, saturize);
                         const color = closestColor(r, g, b, blockColors);
                         if (color.i == ink) {
                             bits |= 1 << (7 - (x - bx));
@@ -205,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filename = filename.substring(0, filename.indexOf('.'));
         }
         const image = new Image;
-        image.onload = () => imageOnload(image, ditherInput.checked, filename);
+        image.onload = () => imageOnload(image, ditherInput.checked, saturizeInput.checked, filename);
         image.src = URL.createObjectURL(fileInput.files[0]);
     };
 
@@ -213,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const reader = new FileReader();
         reader.onload = (e) => {
             const image = new Image();
-            image.onload = () => imageOnload(image, ditherInput.checked, 'clipboard');
+            image.onload = () => imageOnload(image, ditherInput.checked, saturizeInput.checked, 'clipboard');
             image.src = e.target.result;
         }
         reader.readAsDataURL(clipboardBlob);
@@ -228,14 +260,18 @@ document.addEventListener('DOMContentLoaded', () => {
         handleFileInput();
     });
 
-    ditherInput.addEventListener('change', () => {
+    const reload = () => {
         if (latestSource === 'file' && fileInput.files.length >= 1) {
             handleFileInput();
         }
         else if (latestSource === 'clipboard' && clipboardBlob) {
             handleClipboardInput();
         }
-    });
+    };
+
+    ditherInput.addEventListener('change', reload);
+
+    saturizeInput.addEventListener('change', reload);
 
     document.addEventListener('paste', (e) => {
         const items = e.clipboardData.items;
