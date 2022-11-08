@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('file');
     const ditherInput = document.getElementById('dither');
     const saturizeInput = document.getElementById('saturize');
+    const fitSelect = document.getElementById('fit');
     const saveTapButton = document.getElementById('save-tap');
     const playSoundButton = document.getElementById('play-sound');
 
@@ -125,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return { r : r | 0, g : g | 0, b : b | 0 };
     };
 
-    const imageOnload = (image, dither, saturize, filename) => {
+    const imageOnload = (image, dither, saturize, fit, filename) => {
         context.fillStyle = css(color(7));
         context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         context.fillStyle = '#000';
@@ -135,14 +136,28 @@ document.addEventListener('DOMContentLoaded', () => {
         playSoundButton.value = `🔊 SAVE "${filename}" SCREEN$`;
 
         let left = LEFT, top = TOP, width = MAX_WIDTH, height = MAX_HEIGHT;
-        if (image.width / image.height > MAX_WIDTH / MAX_HEIGHT) {
-            height = Math.floor(image.height * MAX_WIDTH / image.width);
-            top = Math.floor((CANVAS_HEIGHT - height) / 2);
+        if (fit === 'contain') {
+            if (image.width / image.height > MAX_WIDTH / MAX_HEIGHT) {
+                height = Math.floor(image.height * MAX_WIDTH / image.width);
+                top = Math.floor((CANVAS_HEIGHT - height) / 2);
+            }
+            else {
+                width = Math.floor(image.width * MAX_HEIGHT / image.height);
+                left = Math.floor((CANVAS_WIDTH - width) / 2);
+            }
         }
-        else {
-            width = Math.floor(image.width * MAX_HEIGHT / image.height);
-            left = Math.floor((CANVAS_WIDTH - width) / 2);
+        else /*if (fit === 'cover')*/ {
+            if (image.width / image.height > MAX_WIDTH / MAX_HEIGHT) {
+                width = Math.floor(image.width * MAX_HEIGHT / image.height);
+                left = Math.floor((CANVAS_WIDTH - width) / 2);
+            }
+            else {
+                height = Math.floor(image.height * MAX_WIDTH / image.width);
+                top = Math.floor((CANVAS_HEIGHT - height) / 2);
+            }
         }
+        context.rect(LEFT, TOP, MAX_WIDTH, MAX_HEIGHT);
+        context.clip();
         context.drawImage(image, left, top, width, height);
 
         const imageData = context.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -237,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filename = filename.substring(0, filename.indexOf('.'));
         }
         const image = new Image;
-        image.onload = () => imageOnload(image, ditherInput.checked, saturizeInput.checked, filename);
+        image.onload = () => imageOnload(image, ditherInput.checked, saturizeInput.checked, fitSelect.value, filename);
         image.src = URL.createObjectURL(fileInput.files[0]);
     };
 
@@ -245,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const reader = new FileReader();
         reader.onload = (e) => {
             const image = new Image();
-            image.onload = () => imageOnload(image, ditherInput.checked, saturizeInput.checked, 'clipboard');
+            image.onload = () => imageOnload(image, ditherInput.checked, saturizeInput.checked, fitSelect.value, 'clipboard');
             image.src = e.target.result;
         }
         reader.readAsDataURL(clipboardBlob);
@@ -270,8 +285,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     ditherInput.addEventListener('change', reload);
-
     saturizeInput.addEventListener('change', reload);
+    fitSelect.addEventListener('change', reload);
 
     document.addEventListener('paste', (e) => {
         const items = e.clipboardData.items;
