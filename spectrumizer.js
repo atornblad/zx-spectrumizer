@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ditherInput = document.getElementById('dither');
     const saturizeInput = document.getElementById('saturize');
     const fitSelect = document.getElementById('fit');
+    const nameInput = document.getElementById('name');
     const saveTapButton = document.getElementById('save-tap');
     const playSoundButton = document.getElementById('play-sound');
 
@@ -132,8 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         context.fillStyle = '#000';
         context.fillRect(LEFT, TOP, MAX_WIDTH, MAX_HEIGHT);
 
-        saveTapButton.value = `💾 Save to ${filename}.TAP`;
-        playSoundButton.value = `🔊 SAVE "${filename}" SCREEN$`;
+        nameInput.value = filename;
 
         let left = LEFT, top = TOP, width = MAX_WIDTH, height = MAX_HEIGHT;
         if (fit === 'contain') {
@@ -156,9 +156,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 top = Math.floor((CANVAS_HEIGHT - height) / 2);
             }
         }
+        context.save();
         context.rect(LEFT, TOP, MAX_WIDTH, MAX_HEIGHT);
         context.clip();
         context.drawImage(image, left, top, width, height);
+        context.restore();
 
         const imageData = context.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -287,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ditherInput.addEventListener('change', reload);
     saturizeInput.addEventListener('change', reload);
     fitSelect.addEventListener('change', reload);
+    nameInput.addEventListener('change', () => filename = nameInput.value);
 
     document.addEventListener('paste', (e) => {
         const items = e.clipboardData.items;
