@@ -10,10 +10,12 @@ Try it out here: https://atornblad.github.io/zx-spectrumizer/
 
 ## Release notes
 
+ - **2023-11-04**: Made the 'contain' mode a bit smarter. It now reuses the edge pixels of the image to fill the remaining space.
  - **2022-11-08**: You can now pick 'cover' or 'contain' to control how an image fills the canvas. You can also select the filename when saving to .TAP or when playing the loading sound.
  - **2022-09-20**: Handles colors better. Does a better color selection, and adds the option to saturize the image.
  - **2022-06-20**: Nicer user interface, fixed a bug in the loading sound that made real ZX Spectrums stop with the "R Tape loading error" message. Still not very clean code.
  - **2022-06-17**: First release. Not very clean code, probably riddled with bugs, very ugly user interface. Just getting something out there.
+ 
 
 ## Technology
 
