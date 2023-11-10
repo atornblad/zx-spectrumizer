@@ -127,11 +127,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return { r : r | 0, g : g | 0, b : b | 0 };
     };
 
+    const copyPixel = (data, sourceIndex, index) => {
+        data[index] = data[sourceIndex];
+        data[index + 1] = data[sourceIndex + 1];
+        data[index + 2] = data[sourceIndex + 2];
+        data[index + 3] = data[sourceIndex + 3];
+    };
+
     const imageOnload = (image, dither, saturize, fit, filename) => {
         context.fillStyle = css(color(7));
         context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        context.fillStyle = '#000';
-        context.fillRect(LEFT, TOP, MAX_WIDTH, MAX_HEIGHT);
 
         nameInput.value = filename;
 
@@ -163,6 +168,52 @@ document.addEventListener('DOMContentLoaded', () => {
         context.restore();
 
         const imageData = context.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        for (let y = TOP; y < top; ++y) {
+            for (let x = LEFT; x < left; ++x) {
+                const sourceIndex = (top * CANVAS_WIDTH + left) * 4;
+                const index = (y * CANVAS_WIDTH + x) * 4;
+                copyPixel(imageData.data, sourceIndex, index);
+            }
+            for (let x = left; x < left + width; ++x) {
+                const sourceIndex = (top * CANVAS_WIDTH + x) * 4;
+                const index = (y * CANVAS_WIDTH + x) * 4;
+                copyPixel(imageData.data, sourceIndex, index);
+            }
+            for (let x = left + width; x < LEFT + MAX_WIDTH; ++x) {
+                const sourceIndex = (top * CANVAS_WIDTH + left + width - 1) * 4;
+                const index = (y * CANVAS_WIDTH + x) * 4;
+                copyPixel(imageData.data, sourceIndex, index);
+            }
+        }
+        for (let y = top; y < top + height; ++y) {
+            for (let x = LEFT; x < left; ++x) {
+                const sourceIndex = (y * CANVAS_WIDTH + left) * 4;
+                const index = (y * CANVAS_WIDTH + x) * 4;
+                copyPixel(imageData.data, sourceIndex, index);
+            }
+            for (let x = left + width; x < LEFT + MAX_WIDTH; ++x) {
+                const sourceIndex = (y * CANVAS_WIDTH + left + width - 1) * 4;
+                const index = (y * CANVAS_WIDTH + x) * 4;
+                copyPixel(imageData.data, sourceIndex, index);
+            }
+        }
+        for (let y = top + height; y < TOP + MAX_HEIGHT; ++y) {
+            for (let x = LEFT; x < left; ++x) {
+                const sourceIndex = ((top + height - 1) * CANVAS_WIDTH + left) * 4;
+                const index = (y * CANVAS_WIDTH + x) * 4;
+                copyPixel(imageData.data, sourceIndex, index);
+            }
+            for (let x = left; x < left + width; ++x) {
+                const sourceIndex = ((top + height - 1) * CANVAS_WIDTH + x) * 4;
+                const index = (y * CANVAS_WIDTH + x) * 4;
+                copyPixel(imageData.data, sourceIndex, index);
+            }
+            for (let x = left + width; x < LEFT + MAX_WIDTH; ++x) {
+                const sourceIndex = ((top + height - 1) * CANVAS_WIDTH + left + width - 1) * 4;
+                const index = (y * CANVAS_WIDTH + x) * 4;
+                copyPixel(imageData.data, sourceIndex, index);
+            }
+        }
 
         for (let by = TOP; by < (TOP + MAX_HEIGHT); by += 8) {
             const blockTopLine = by - TOP;
