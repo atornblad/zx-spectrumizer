@@ -1,3 +1,4 @@
+const { generateTap, getZXSpectrumSafeString } = await import('./tap-files.js');
 
 const MEMORY_SIZE = 192 * 32 + 24 * 32;
 const memory = new Uint8ClampedArray(MEMORY_SIZE);
@@ -44,7 +45,17 @@ const closestColor = (r, g, b, cols) => {
     return colors_used.reduce((a, b) => distance(a) <= distance(b) ? a : b);
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+const onLoad = (f) => {
+    if (document.readyState === 'complete') {
+        window.setTimeout(f, 1);
+    }
+    else {
+        document.addEventListener('DOMContentLoaded', f);
+    }
+};
+
+onLoad(() => {
+    console.log('DOMContentLoaded');
     const canvas = document.querySelector('canvas');
     const context = canvas.getContext('2d');
     const fileLabel = document.getElementById('file-label');

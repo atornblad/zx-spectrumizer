@@ -1,6 +1,33 @@
+
+class TapFileBlock {
+    getBytes() {
+        
+    }
+}
+
+class TapFileHeaderBlock extends TapFileBlock {
+
+}
+
+class TapFileDataBlock extends TapFileBlock {
+
+}
+
+class TapFile {
+    constructor() {
+        this.blocks = [];
+    }
+
+    addData(bytes, origin) {
+        const header = new TapFileHeaderBlock();
+        const data = new TapFileDataBlock();
+        this.blocks.push(header, data);
+    }
+}
+
 const onlyAscii = (str) => str.replace(/[^\x20-\x7e]/g, '');
 
-function getZXSpectrumSafeString(str, maxLength, valueIfEmpty) {
+export const getZXSpectrumSafeString = function(str, maxLength, valueIfEmpty) {
     str = onlyAscii(str);
     if (str.length === 0) {
         str = valueIfEmpty;
@@ -27,7 +54,7 @@ const xorBytes = (memory, start, length) => {
     return xor;
 };
 
-function generateTap(filename, memory) {
+export function generateTap(filename, memory) {
     const file = new Uint8ClampedArray(2 + 19 + 2 + 2 + memory.length);
     file[0] = 19;   // First block size (two positions)
     file[1] = 0;
@@ -50,3 +77,4 @@ function generateTap(filename, memory) {
     file[24 + MEMORY_SIZE] = xorBytes(file, 23, MEMORY_SIZE + 1);
     return file;
 }
+
