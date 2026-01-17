@@ -20,6 +20,7 @@ const color = (i) => {
 const css = ({r,g,b}) => `rgb(${r},${g},${b})`;
 
 const colors = arrange(0, 16).map(color);
+const colorsBW = [color(0), color(7)];
 
 const rgbToHue = (r, g, b) => {
     r /= 255, g /= 255, b /= 255;
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('file');
     const ditherInput = document.getElementById('dither');
     const saturizeInput = document.getElementById('saturize');
+    const monoInput = document.getElementById('mono');
     const fitSelect = document.getElementById('fit');
     const nameInput = document.getElementById('name');
     const saveTapButton = document.getElementById('save-tap');
@@ -134,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data[index + 3] = data[sourceIndex + 3];
     };
 
-    const imageOnload = (image, dither, saturize, fit, filename) => {
+    const imageOnload = (image, dither, saturize, mono, fit, filename) => {
         context.fillStyle = css(color(7));
         context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -252,14 +254,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 localColorsByIndex.sort((a, b) => b.count - a.count);
 
-                const blockColors = [colors[localColorsByIndex[0].i], colors[localColorsByIndex[1].i]];
-
+                let blockColors = [colors[localColorsByIndex[0].i], colors[localColorsByIndex[1].i]];
+                if (mono) {
+                    blockColors = colorsBW;
+                }
                 // Draw the block
                 const attrAddress = 32 * 192 + blockTop * 32 + blockLeft;
 
                 // The most common should be the "zero" bit (the PAPER color)
-                const paper = blockColors[0].i;
-                const ink = blockColors[1].i;
+                let paper = blockColors[0].i;
+                let ink = blockColors[1].i;
+                if (mono) {
+                    // INK is black and PAPER is white
+                    ink = colorsBW[0].i;
+                    paper = colorsBW[1].i;
+                }
 
                 const attr = (bright ? 0x40 : 0) | ((paper & 0x07) << 3) | (ink & 0x07);
                 memory[attrAddress] = attr;
@@ -305,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filename = filename.substring(0, filename.indexOf('.'));
         }
         const image = new Image;
-        image.onload = () => imageOnload(image, ditherInput.checked, saturizeInput.checked, fitSelect.value, filename);
+        image.onload = () => imageOnload(image, ditherInput.checked, saturizeInput.checked, monoInput.checked, fitSelect.value, filename);
         image.src = URL.createObjectURL(fileInput.files[0]);
     };
 
@@ -313,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const reader = new FileReader();
         reader.onload = (e) => {
             const image = new Image();
-            image.onload = () => imageOnload(image, ditherInput.checked, saturizeInput.checked, fitSelect.value, 'clipboard');
+            image.onload = () => imageOnload(image, ditherInput.checked, saturizeInput.checked, monoInput.checked, fitSelect.value, 'clipboard');
             image.src = e.target.result;
         }
         reader.readAsDataURL(clipboardBlob);
@@ -339,6 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ditherInput.addEventListener('change', reload);
     saturizeInput.addEventListener('change', reload);
+    monoInput.addEventListener('change', reload);
     fitSelect.addEventListener('change', reload);
     nameInput.addEventListener('change', () => filename = nameInput.value);
 
