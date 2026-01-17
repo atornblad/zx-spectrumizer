@@ -10,6 +10,7 @@ Try it out here: https://atornblad.github.io/zx-spectrumizer/
 
 ## Release notes
 
+ - **2026-01-16**: Added a monochrome option to convert to only black INK and white paper so that images will print predictably with dark areas as black. Best used with the dither option. 
  - **2023-11-04**: Made the 'contain' mode a bit smarter. It now reuses the edge pixels of the image to fill the remaining space.
  - **2022-11-08**: You can now pick 'cover' or 'contain' to control how an image fills the canvas. You can also select the filename when saving to .TAP or when playing the loading sound.
  - **2022-09-20**: Handles colors better. Does a better color selection, and adds the option to saturize the image.
